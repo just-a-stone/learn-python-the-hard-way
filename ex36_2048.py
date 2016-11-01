@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# import curses
 from random import randrange, choice
 
 class Game2048(object):
@@ -39,6 +40,9 @@ class Game2048(object):
                 for index, value in enumerate(row):
                     if index + 1 < len(row) and value == row[index + 1]:
                         row[index] = value * 2
+                        row[index + 1] = 0
+                        if row[index] > self.max_score:
+                            self.max_score = row[index]
                         continue
                 return row
 
@@ -50,7 +54,57 @@ class Game2048(object):
         moves['UP'] = lambda chessboard: [transpose(moves['LEFT'](transpose(row))) for row in chessboard]
         moves['DOWN'] = lambda chessboard: [transpose(moves['RIGHT'](transpose(row))) for row in chessboard]
 
+        action = action.upper()
         if action in moves:
             self.chessboard = moves[action](self.chessboard)
         else:
             print 'error action.'
+
+    def is_win(self):
+        return self.max_score >= self.win_value
+
+    def is_gameover(self):
+        def moveable():
+            return any((i == 0 for i in row) for row in self.chessboard)
+
+        def mergeable():
+            for row in self.chessboard:
+                for index, value in enumerate(row):
+                    if value == row[index + 1]:
+                        return True
+
+            for row in transpose(self.chessboard):
+                for index, value in enumerate(row):
+                    if value == row[index + 1]:
+                        return True
+
+            return False
+
+        return not (moveable()) or not (mergeable())
+
+
+    def draw(self):
+        def show(string):
+            print string
+            # screen.addstr(string + '\n')
+
+        def start():
+            tips = "please input the key follows!"
+            operation = "[w]:up [a]:left [s]:down [d]:right"
+            helps = "[q]:exit [r]:restart"
+            begin = "now, let's begin!"
+
+            show(tips)
+            show(operation)
+            show(helps)
+            show(begin)
+
+        def show_chessboard():
+            line = '+------' * self.width + '+'
+            for row in self.chessboard:
+                rowout = ''
+                for x in row:
+                    rowout += str(x).center(6)
+                show(rowout)
+
+        show_chessboard()
