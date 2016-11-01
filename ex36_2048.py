@@ -23,10 +23,10 @@ class Game2048(object):
         (i, j) = choice([(i, j) for i in range(self.width) for j in range(self.height) if self.chessboard[i][j] == 0])
         self.chessboard[i][j] = new_chessman
 
-    def transpose(chessboard):
+    def transpose(self, chessboard):
         return [list(i) for i in zip(*chessboard)]
 
-    def invert(chessboard):
+    def invert(self, chessboard):
         return [row[::-1] for row in chessboard]
 
     def move(self, action):
@@ -50,9 +50,9 @@ class Game2048(object):
 
         moves = {}
         moves['LEFT'] = lambda chessboard: [move_row_left(row) for row in chessboard]
-        moves['RIGHT'] = lambda chessboard: [invert(moves['LEFT'](invert(row))) for row in chessboard]
-        moves['UP'] = lambda chessboard: [transpose(moves['LEFT'](transpose(row))) for row in chessboard]
-        moves['DOWN'] = lambda chessboard: [transpose(moves['RIGHT'](transpose(row))) for row in chessboard]
+        moves['RIGHT'] = lambda chessboard: self.invert(moves['LEFT'](self.invert(chessboard)))
+        moves['UP'] = lambda chessboard: self.transpose(moves['LEFT'](self.transpose(chessboard)))
+        moves['DOWN'] = lambda chessboard: self.transpose(moves['RIGHT'](self.transpose(chessboard)))
 
         action = action.upper()
         if action in moves:
@@ -88,23 +88,48 @@ class Game2048(object):
             print string
             # screen.addstr(string + '\n')
 
-        def start():
-            tips = "please input the key follows!"
-            operation = "[w]:up [a]:left [s]:down [d]:right"
-            helps = "[q]:exit [r]:restart"
-            begin = "now, let's begin!"
-
-            show(tips)
-            show(operation)
-            show(helps)
-            show(begin)
-
         def show_chessboard():
             line = '+------' * self.width + '+'
             for row in self.chessboard:
                 rowout = ''
                 for x in row:
+                    rowout += '|'
                     rowout += str(x).center(6)
-                show(rowout)
 
+                show(line)
+                show(rowout + '|')
+
+            show(line)
         show_chessboard()
+
+def start():
+
+    game = Game2048()
+
+    tips = "please input the key follows!"
+    operation = "[w]:up [a]:left [s]:down [d]:right"
+    helps = "[q]:exit [r]:restart"
+    begin = "now, let's begin!"
+
+    print tips
+    print operation
+    print helps
+    print begin
+
+    actions = {}
+    actions['w'] = 'up'
+    actions['a'] = 'left'
+    actions['s'] = 'down'
+    actions['d'] = 'right'
+
+    while True:
+        input = raw_input('> ')
+        if not input:
+            continue
+        game.move(actions[input])
+        game.add_new()
+        game.draw()
+
+
+if __name__ == '__main__':
+    start()
